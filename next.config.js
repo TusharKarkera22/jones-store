@@ -25,7 +25,7 @@ const nextConfig = {
   reactStrictMode: true,
   swcMinify: true,
   images: {
-    domains: ["res.cloudinary.com", "flagcdn.com"]
+    domains: ["res.cloudinary.com", "flagcdn.com","static.nike.com"]
   },
 
   sassOptions: {

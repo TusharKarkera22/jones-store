@@ -1,7 +1,5 @@
 import type { CartType, UserProducts, WishlistType } from "src/types/shared";
-
 import { ObjectSchema, ValidationError } from "yup";
-
 import { CLOUDINARY_CLOUD_NAME } from "./lib/config";
 
 export function validateInputs(
@@ -10,8 +8,8 @@ export function validateInputs(
 ): ValidationError | void {
   try {
     schema.validateSync(input, {
-      strict: true,
-      stripUnknown: true,
+      strict: false,
+      stripUnknown: false,
       abortEarly: false,
     });
   } catch (err: unknown) {
@@ -22,7 +20,8 @@ export function validateInputs(
 }
 
 export const validateInput =
-  (schema: ObjectSchema<any>) => (param: string, value: string) => {
+  (schema: ObjectSchema<any>) =>
+  (param: string, value: string) => {
     try {
       schema.fields[param].validateSync(value);
       return "";
@@ -39,8 +38,20 @@ function isCartType(obj: any): obj is CartType {
 }
 
 export const normalizeUserProductItems = (
-  items: (CartType | WishlistType)[]
+  items: (CartType | WishlistType)[] | null // Allow null values
 ) => {
+  // Handle null items array gracefully
+  if (!items) {
+    console.error("Items array is null.");
+    return {
+      productIds: [],
+      items: {},
+      count: 0,
+      total: 0,
+      shippingTotal: 0,
+    };
+  }
+
   return items.reduce(
     (userProducts: UserProducts<CartType | WishlistType>, item) => {
       userProducts.productIds.push(item.productId);
@@ -78,7 +89,7 @@ export const getBase64UrlCloudinary = async (imageId: string) => {
     const data = Buffer.from(buffer).toString("base64");
     return `data:image/webp;base64,${data}`;
   } catch (e) {
-    console.log(e);
+    console.error(e);
     return "";
   }
 };

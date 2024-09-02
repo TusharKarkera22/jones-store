@@ -7,6 +7,7 @@ import { buffer } from "micro";
 
 import RouteHandler from "@Lib/RouteHandler";
 import prisma from "@Lib/prisma";
+import nodemailer from "nodemailer";
 
 const stripe = new Stripe(process.env.STRIPE_SECRET_KEY as string, {
   apiVersion: "2022-08-01",
@@ -20,6 +21,17 @@ export const config = {
     bodyParser: false,
   },
 };
+
+// Set up Nodemailer transporter
+const transporter = nodemailer.createTransport({
+  host: 'smtp.gmail.com',
+  port: 587,
+  secure: false, // true for 465, false for other ports
+  auth: {
+    user: process.env.EMAIL_USER, // generated ethereal user
+    pass: process.env.EMAIL_PASS, // generated ethereal password
+  },
+});
 
 async function ConfirmPayment(
   req: NextApiRequest,
@@ -62,7 +74,7 @@ async function ConfirmPayment(
         });
 
         if (!cart) {
-          return;
+          return res.status(400).json({ success: false, message: "Cart not found" });
         }
 
         const orderLineItems = await prisma.orderLine.findMany({
@@ -84,13 +96,34 @@ async function ConfirmPayment(
           });
         }
 
-        return res.json({ success: true, message: "Success" });
+        // Fetch user details for email
+        const user = await prisma.user.findUnique({
+          where: { id: userId },
+          select: { email: true, firstName: true },
+        });
+
+        if (user) {
+          // Send confirmation email
+          await transporter.sendMail({
+            from: `"Your Company" <${process.env.EMAIL_USER}>`, // sender address
+            to: user.email, // list of receivers
+            subject: "Order Confirmation", // Subject line
+            text: `Hi ${user.firstName || ''}, your order #${orderId} has been successfully confirmed. Thank you for your purchase!`, // plain text body
+            html: `<p>Hi ${user.firstName || ''},</p>
+                   <p>Your order #${orderId} has been successfully confirmed.</p>
+                   <p>Thank you for your purchase!</p>`, // html body
+          });
+        }
+
+        return res.json({ success: true, message: "Payment confirmed and email sent" });
       }
     } catch (e) {
       console.error(e);
-      return res.status(500).json({ success: false, message: "Error" });
+      return res.status(500).json({ success: false, message: "Error processing payment" });
     }
   }
+
+  res.status(400).json({ success: false, message: "Unhandled event type" });
 }
 
 export default RouteHandler().post(ConfirmPayment);

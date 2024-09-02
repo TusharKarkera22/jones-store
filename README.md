@@ -125,10 +125,10 @@ The website features real-time product filters, a pop-up search option (AJAX liv
    DATABASE_URL="postgres://{user}:{password}@{hostname}:{port}/{database_name}"
 
    # 32+ character long string for session cookie encryption [https://1password.com/password-generator/]
-   SECRET_COOKIE_PASSWORD="complex_password_at_least_32_characters_long"
+   SECRET_COOKIE_PASSWORD="yhwio7g0fa4KYMsnXkCVnwFfJcw6kGHQ"
 
    # DOMAIN ADDRESS
-   DOMAIN="http(s)://example.org"
+   DOMAIN="https://jones-store.vercel.app"
 
    # STRIPE INFO
    STRIPE_PUBLISHABLE_KEY="pk_..."

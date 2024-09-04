@@ -1,6 +1,34 @@
+import { useEffect } from "react";
 import Head from "next/head";
+import { useRouter } from "next/router";
 
-export default function PaymentSuccess() {
+type PaymentSuccessProps = {
+  userId?: string;
+  orderId?: string;
+};
+
+function PaymentSuccess({ userId, orderId }: PaymentSuccessProps) {
+  const router = useRouter();
+
+  useEffect(() => {
+    if (userId && orderId) {
+      fetch("/api/send-email", {
+        method: "POST",
+        headers: {
+          "Content-Type": "application/json",
+        },
+        body: JSON.stringify({ userId, orderId }),
+      })
+      .then(response => response.json())
+      .then(data => {
+        console.log("Email sent successfully:", data);
+      })
+      .catch(error => {
+        console.error("Error sending email:", error);
+      });
+    }
+  }, [userId, orderId]);
+
   return (
     <div className="page">
       <div className="page__container">
@@ -18,3 +46,13 @@ export default function PaymentSuccess() {
     </div>
   );
 }
+
+// Fetch userId and orderId from query parameters
+export async function getServerSideProps(context: any) {
+  const { userId, orderId } = context.query;
+  return {
+    props: { userId: userId || null, orderId: orderId || null }, // Provide default value if userId or orderId is not found
+  };
+}
+
+export default PaymentSuccess;

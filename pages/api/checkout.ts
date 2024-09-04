@@ -158,7 +158,7 @@ async function PostCheckoutRoute(
             orderId: order.id,
             userId: user.id,
           },
-          success_url: process.env.DOMAIN + "/payment-success",
+          success_url: process.env.DOMAIN + `/payment-success?userId=${user.id}&orderId=${order.id}`,
           cancel_url: process.env.DOMAIN + "/payment-cancel",
         });
         res.json({ message: "Started Payment Session", data: session.url });
